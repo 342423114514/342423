@@ -1,0 +1,167 @@
+local Translations = {
+    ["Search"] = "搜素",
+    ["Config"] = "配置",
+    ["Info"] = "信息",
+    ["Main"] = "主要",
+    ["Ugly"] = "朝霞",
+    ["Special"] = "主要功能",
+    ["Helpers"] = "其他功能",
+    ["Anti Ragdoll"] = "反布偶",
+    ["Reminder"] = "关门提醒",
+    ["Anti-AFK"] = "反AFK",
+    ["Infinite Jump"] = "无限跳跃",
+    ["Server Hop"] = "换服",
+    ["Websling Panel"] = "不知道有啥用",
+    ["Gazer Beam"] = "自动命中",
+    ["Spam Beam"] = "自动命中2",
+    ["Base Guard"] = "基地守卫",
+    ["Ugly's Helper"] = "Ugly助手",
+    ["FPS DEVOURER"] = "卡人(要购买服装)",
+    ["Player Tracer"] = "透视玩家",
+    ["Esp"] = "视觉",
+    ["Paste JobId here"] = "复制id",
+    ["JobId"] = "加入",
+    ["Walk Speed"] = "行走速度",
+    ["Enable Auto Buy"] = "启动购买",
+    ["Select Animals"] = "选择脑红",
+    ["Auto Buy"] = "自动购买",
+    ["Lock Timer ESP"] = "看剩余时间",
+    ["Anti-Invisibilit"] = "防隐形",
+    ["Highest Value"] = "看最贵东西",
+    ["Item ESP"] = "看背包物品",
+    ["Base ESP"] = "半隐形房子",
+    ["Welcome back. -Ugly"] = "朝霞汉化",
+    ["About"] = "Q群",
+    ["Right-Ctrl to toggle UI"] = "1038849170",
+    ["Configuration"] = "配置",
+    ["UI Scale"] = "UI缩放",
+    ["UI Settings"] = "UI设置",
+    ["Laser (X)"] = "射激光",
+    ["Lock"] = "锁定",
+    ["Toggle"] = "打开",
+    ["Speed Heaven"] = "速度加大",
+    ["Anti-Hit"] = "防击打",
+    ["Float Steal"] = "偷楼上(会死)",
+    ["Gravity"] = "重力",
+    ["Jump Boost"] = "跳跃增强",
+    ["Speed Boost"] = "速度增加",
+    ["Ugly's Helper"] = "Ugly助手",
+    ["OFF"] = "打开",
+    ["ON"] = "关闭",
+    ["Grapple Speed"] = "抓取速度",
+}
+
+local function translateText(text)
+    if not text or type(text) ~= "string" then return text end
+    
+    if Translations[text] then
+        return Translations[text]
+    end
+    
+    for en, cn in pairs(Translations) do
+        if text:find(en) then
+            return text:gsub(en, cn)
+        end
+    end
+    
+    return text
+end
+
+local function setupTranslationEngine()
+    local success, err = pcall(function()
+        local oldIndex = getrawmetatable(game).__newindex
+        setreadonly(getrawmetatable(game), false)
+        
+        getrawmetatable(game).__newindex = newcclosure(function(t, k, v)
+            if (t:IsA("TextLabel") or t:IsA("TextButton") or t:IsA("TextBox")) and k == "Text" then
+                v = translateText(tostring(v))
+            end
+            return oldIndex(t, k, v)
+        end)
+        
+        setreadonly(getrawmetatable(game), true)
+    end)
+    
+    if not success then
+        warn("元表劫持失败:", err)
+       
+        local translated = {}
+        local function scanAndTranslate()
+            for _, gui in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+                if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                    pcall(function()
+                        local text = gui.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                gui.Text = translatedText
+                                translated[gui] = true
+                            end
+                        end
+                    end)
+                end
+            end
+            
+            local player = game:GetService("Players").LocalPlayer
+            if player and player:FindFirstChild("PlayerGui") then
+                for _, gui in ipairs(player.PlayerGui:GetDescendants()) do
+                    if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                        pcall(function()
+                            local text = gui.Text
+                            if text and text ~= "" then
+                                local translatedText = translateText(text)
+                                if translatedText ~= text then
+                                    gui.Text = translatedText
+                                    translated[gui] = true
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        
+        local function setupDescendantListener(parent)
+            parent.DescendantAdded:Connect(function(descendant)
+                if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                    task.wait(0.1)
+                    pcall(function()
+                        local text = descendant.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                descendant.Text = translatedText
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+        
+        pcall(setupDescendantListener, game:GetService("CoreGui"))
+        local player = game:GetService("Players").LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            pcall(setupDescendantListener, player.PlayerGui)
+        end
+        
+        while true do
+            scanAndTranslate()
+            task.wait(3)
+        end
+    end
+end
+
+task.wait(2)
+
+setupTranslationEngine()
+
+local success, err = pcall(function()
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/53325754de16c11fbf8bf78101c1c881.lua"))()
+
+
+
+end)
+
+if not success then
+    warn("加载失败:", err)
+end
