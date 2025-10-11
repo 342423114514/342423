@@ -1,0 +1,194 @@
+local Translations = {
+    ["Float to Plot Max Distance"] = "浮空至地块最大距离",
+    ["Platform speed"] = "平台移动速度",
+    ["Platform Max Height"] = "平台最大高度",
+    ["Reset Settings"] = "重置设置",
+    ["Reset All Settings"] = "重置所有设置",
+    ["Reset Toggles"] = "重置开关状态",
+    ["Infinite Jump Cooldown"] = "无限跳跃冷却时间",
+    ["Jump Boost Power"] = "跳跃增强力度",
+    ["Float to Plot Speed"] = "浮空至地块速度",
+    ["ESP Update Interval"] = "透视更新间隔",
+    ["Show Player Distance"] = "显示玩家距离",
+    ["Show Player Items"] = "显示玩家物品",
+    ["Player ESP Color"] = "玩家透视颜色",
+    ["Pick Player ESP Color"] = "选择玩家透视颜色",
+    ["Show Plot Distance"] = "显示地块距离",
+    ["Show Plot Owner"] = "显示地块所有者",
+    ["Brainrot ESP Color"] = "脑红透视颜色",
+    ["Pick Brainrot ESP Color"] = "选择脑红透视颜色",
+    ["Plot ESP Color"] = "地块透视颜色",
+    ["Pick Plot ESP Color"] = "选择地块透视颜色",
+    ["Float Descent Speed"] = "浮空下降速度",
+    ["Helicopter Rotation Speed"] = "直升机旋转速度",
+    ["Grapple Flight Speed"] = "抓钩飞行速度",
+    ["Infinite Jump Power"] = "无限跳跃力度",
+    ["ESP Controls"] = "透视控制",
+    ["Player ESP"] = "玩家透视",
+    ["Plot ESP"] = "地块透视",
+    ["Brainrot ESP"] = "脑红透视",
+    ["Timer ESP"] = "倒计时透视",
+    ["Server Options"] = "服务器选项",
+    ["Server Hop"] = "换服",
+    ["Private Server"] = "私人服务器",
+    ["Rejoin Server"] = "重新加入服务器",
+    ["Float to Plot"] = "浮空至地块",
+    ["Freeze"] = "冻结（玩家）",
+    ["Grapple Flight"] = "抓钩飞行",
+    ["Infinite Jump"] = "无限跳跃",
+    ["Platform"] = "生成平台",
+    ["Helicopter"] = "直升机模式",
+    ["Config"] = "配置",
+    ["Configuration System"] = "配置系统",
+    ["Save and load your settings. Works when you rejoin!"] = "保存并加载你的设置，重新加入时生效！",
+    ["Save Settings"] = "保存设置",
+    ["Load Settings"] = "加载设置",
+    ["Console"] = "控制台",
+    ["Console & Debug"] = "控制台与调试",
+    ["Console Output"] = "控制台输出",
+    ["Clear"] = "清空",
+    ["Welcome"] = "欢迎",
+    ["Welcome to ZZZZ HUB v1.7"] = "欢迎使用 ZZZZ HUB v1.7",
+    ["Best Free Steal a Brainrot Script."] = "最佳免费偷走脑红脚本",
+    ["always updating each week! We are ZZZZ HUB!"] = "每周持续更新！我们是 ZZZZ HUB！",
+    ["Join our community: https://discord.gg/zzzzhub"] = "加入我们的社区：https://discord.gg/zzzzhub",
+    ["Home"] = "主页",
+    ["Movement"] = "移动",
+    ["Player Movement"] = "玩家移动",
+    ["Bat Destroyer (600x)"] = "球棒破坏器（600倍）",
+    ["Float"] = "浮空",
+    ["Height Bypass"] = "高度绕过(会拉回)",
+    ["Tall like zzzz"] = "提升视野",
+    ["Fling System"] = "弹射系统",
+    ["Fling Em"] = "弹射目标",
+    ["Select Player for Fling"] = "选择弹射玩家",
+    ["Ragdoll Desync"] = "布偶不同步",
+    ["Laser Cape Auto-Fire"] = "激光斗篷自动射击",
+    ["ZZZZ Desync"] = "防攻击",
+    ["Debug"] = "调试",
+    ["Toggle states JSON"] = "开关状态JSON",
+    ["Success"] = "成功",
+    ["Toggle states saved to file"] = "开关状态已保存到文件",
+    ["Info"] = "信息",
+    ["Starting brainrot ESP update"] = "开始脑红透视更新",
+    ["Found brainrot with value"] = "找到价值为的脑红",
+    ["Found target child for brainrot"] = "找到脑红的目标子对象",
+    ["Brainrot display template created successfully"] = "脑红显示模板创建成功",
+    ["Delete Borders"] = "删除边框",
+    ["Barrier Increase"] = "屏障增强",
+    ["ZZZZ HUB"] = "朝霞汉化",
+    ["Visual"] = "视觉",
+    ["Server"] = "服务器",
+}
+
+local function translateText(text)
+    if not text or type(text) ~= "string" then return text end
+    
+    if Translations[text] then
+        return Translations[text]
+    end
+    
+    for en, cn in pairs(Translations) do
+        if text:find(en) then
+            return text:gsub(en, cn)
+        end
+    end
+    
+    return text
+end
+
+local function setupTranslationEngine()
+    local success, err = pcall(function()
+        local oldIndex = getrawmetatable(game).__newindex
+        setreadonly(getrawmetatable(game), false)
+        
+        getrawmetatable(game).__newindex = newcclosure(function(t, k, v)
+            if (t:IsA("TextLabel") or t:IsA("TextButton") or t:IsA("TextBox")) and k == "Text" then
+                v = translateText(tostring(v))
+            end
+            return oldIndex(t, k, v)
+        end)
+        
+        setreadonly(getrawmetatable(game), true)
+    end)
+    
+    if not success then
+        warn("元表劫持失败:", err)
+       
+        local translated = {}
+        local function scanAndTranslate()
+            for _, gui in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+                if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                    pcall(function()
+                        local text = gui.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                gui.Text = translatedText
+                                translated[gui] = true
+                            end
+                        end
+                    end)
+                end
+            end
+            
+            local player = game:GetService("Players").LocalPlayer
+            if player and player:FindFirstChild("PlayerGui") then
+                for _, gui in ipairs(player.PlayerGui:GetDescendants()) do
+                    if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                        pcall(function()
+                            local text = gui.Text
+                            if text and text ~= "" then
+                                local translatedText = translateText(text)
+                                if translatedText ~= text then
+                                    gui.Text = translatedText
+                                    translated[gui] = true
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        
+        local function setupDescendantListener(parent)
+            parent.DescendantAdded:Connect(function(descendant)
+                if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                    task.wait(0.1)
+                    pcall(function()
+                        local text = descendant.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                descendant.Text = translatedText
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+        
+        pcall(setupDescendantListener, game:GetService("CoreGui"))
+        local player = game:GetService("Players").LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            pcall(setupDescendantListener, player.PlayerGui)
+        end
+        
+        while true do
+            scanAndTranslate()
+            task.wait(3)
+        end
+    end
+end
+
+task.wait(2)
+
+setupTranslationEngine()
+
+local success, err = pcall(function()
+loadstring(game:HttpGet("https://pastefy.app/DHyT4Zoi/raw"))()
+end)
+
+if not success then
+    warn("加载失败:", err)
+end
